@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset=utf-8 />
+        <title>CDO CanAsia Map</title>
+        <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' /> <!-- adjusts the screen width to the device accessing the web map -->
+        <script src="https://api.mapbox.com/mapbox-gl-js/v1.7.0/mapbox-gl.js"></script> <!-- sets up Mapbox GL JS -->
+        <link href="https://api.mapbox.com/mapbox-gl-js/v1.7.0/mapbox-gl.css" rel="stylesheet" /> <!-- sets up Mapbox GL JS -->
+        <!-- styles used-->
+        <style>
+            /*style for map*/
+            body { margin:0; padding:0; } 
+            .map { position:absolute; top:0; bottom:0; width:100%; }
+
+            /*style for map title header*/
+            .header {
+                background-color: #000d1a; 
+                font: 11.5px 'Calibri';
+                color: #eff3ff; 
+                position: absolute;
+                width: 100%;
+                height: 60px; 
+                z-index: 1;
+                opacity: 0.8; 
+            }
+
+            /*style for cluster option*/
+            .cluster-option {
+                background: #ff944e;
+                position: absolute;
+                z-index: 1;
+                top: 70px;
+                left: 10px;
+                border-radius: 3px;
+                width: 160px;
+                border: 1px solid grey; 
+                font-family: 'Open Sans', sans-serif;
+            }
+            .cluster-option a {
+                font-size: 13px;
+                color: #404040;
+                display: block;
+                margin: 0;
+                padding: 0;
+                padding: 10px;
+                text-decoration: none;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+                text-align: center;
+            }
+            .cluster-option a:last-child {
+                border: none;
+            }
+            .cluster-option a:hover {
+                background-color: #c44e00;
+                color: #404040;
+            }
+            .cluster-option a.active {
+                background-color: #ffd0b1
+                color: grey; 
+            }
+            .cluster-option a.active:hover {
+                background: #ffa062;
+            }
+
+            /*style for tech sector filter group*/
+            .filter-group {
+                font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+                background: #ffffff;
+                position: absolute;
+                z-index: 1;
+                top: 120px;
+                left: 10px;
+                border-radius: 3px;
+                width: 160px;
+                border: 1px solid rgba(0, 0, 0, 0.4);
+            }
+            .filter-group a {
+                font-size: 13px;
+                color: #404040;
+                display: block;
+                margin: 0;
+                padding: 0;
+                padding: 10px;
+                text-decoration: none;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+                text-align: center;
+            }
+            .filter-group a:last-child {
+                border: none;
+            }
+            .filter-group a:hover {
+                background-color: #c4e8ff;
+            }
+            .filter-group a.active {
+                background-color: #4292c6;
+                color: #ffffff;
+            }
+            .filter-group a.active:hover {
+                background: #084594;
+            }
+            
+            /*style for hover description display*/
+            .location-description {
+                position: absolute;
+                font-family: sans-serif;
+                margin-top: 5px;
+                margin-right: 5px;
+                right: 5px;
+                top: 64px;
+                padding: 5px;
+                width: 30%;
+                border: 2px solid grey;
+                font-size: 14px;
+                color: black;
+                background: rgba(0, 255, 255, 0.3);
+                border-radius: 3px;
+                overflow: auto;
+            }
+
+            /*style for choloropleth legend*/
+            .chloropleth-legend {
+                background-color: #fff;
+                border-radius: 3px;
+                bottom: 316px;
+                font: 12px/24px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+                padding: 15px;
+                position: absolute;
+                right: 10px;
+                z-index: 1;
+                opacity: 0.85; 
+                width: 240px;
+            }
+            .chloropleth-legend h4 {
+                margin: 0 0 10px;
+            }
+            .chloropleth-legend div span {
+                border-radius: 50%;
+                display: inline-block;
+                height: 10px;
+                margin-right: 5px;
+                width: 10px;
+            }
+            
+            /*style for tech sector legend*/
+            .sector-legend {
+                width: 700; 
+                background-color: #fff;
+                border-radius: 3px;
+                bottom: 48px;
+                font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+                padding: 10px;
+                position: absolute;
+                right: 10px;
+                z-index: 1;
+                opacity: 0.85;
+                width: 250px;
+            }
+            .sector-legend h4 {
+                margin: 0 0 10px;
+            }
+            .sector-legend div span {
+                border-radius: 50%;
+                display: inline-block;
+                height: 10px;
+                margin-right: 5px;
+                width: 10px;
+            }
+
+            /*style for popup*/
+            .mapboxgl-popup {
+                max-width: 400px;
+                font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+                box-shadow: 3px 3px 2px #8B5D33;
+                background-color: #3887be;
+                border-color: #91785D;
+                color: grey; 
+                opacity: 0.9; 
+            }
+
+            /*style for popup*/
+            .reference {
+                position: absolute;
+                right: 0px;
+                bottom: 25px;
+                font: 12px 'Arial';
+                background-color: white; 
+                color: black; 
+                z-index: 1;
+                opacity: 0.5; 
+            }
+        </style>
+    </head>
+    <body>
+        <div id='map' class='map'> </div>
+        <div id = "header" class = "header">
+            <h1> &nbsp &nbsp Canadian Tech Companies Across Asian Markets </h1> 
+        </div>
+        <nav id="cluster-option" class = "cluster-option"></nav>
+        <nav id="filter-group" class="filter-group"></nav>
+        <div id = "location-description" class="location-description">
+            <div><strong> Canadian Parent Company: </strong><span id= 'com'></span></div>
+            <div><strong> Canadian Province of HQ: </strong><span id= 'prov'></span></div>
+            <div><strong> Multicount (locations in US and/or EU): </strong><span id= 'multic'></span></div>
+            <div><strong> Sector: </strong></strong><span id= 'sec'></span></div>
+            <div><strong> City: </strong></strong><span id= 'city'></span></div>
+            <div><strong> Country: </strong></strong><span id= 'country'></span></div>
+        </div>
+        <div id="chloropleth-legend" class="chloropleth-legend">
+            <h4>Number of Locations per Country </h4>  <!-- Legend title -->
+            <div><span style="background-color: #eff3ff"></span>0 - 1.67</div> <!-- a 'subdivision showing a colored circle and then text describing it' -->
+            <div><span style="background-color: #c6dbef"></span>1.67 - 31.33</div>
+            <div><span style="background-color: #9ecae1"></span>31.33 - 41</div>
+            <div><span style="background-color: #6baed6"></span>41 - 62.67</div>
+            <div><span style="background-color: #4292c6"></span>62.67 - 106.33</div>
+            <div><span style="background-color: #2171b5"></span>106.33 - 298</div>
+        </div>
+        <div id="sector-legend" class="sector-legend">
+            <h4>Canadian Tech Company Locations by Sector</h4>
+            <div><span><img src = "https://www.mastercam.com/wp-content/uploads/2019/02/Mill_Icon.png" width = "15" height = "15"></img></span>     Advanced Manufacturing</div>
+            <div><span><img src = "https://cdn.iconscout.com/icon/free/png-256/social-media-advertising-digital-marketing-branding-announcement-1-6847.png" width = "15" height = "15"></img></span>     Digital & Media</div>
+            <div><span><img src = "https://cdn1.iconfinder.com/data/icons/data-analytics-and-data-storage-circle-flat-vol-2/100/cpu__chip__processor__computer-512.png" width = "15" height = "15"></img></span>     Electronics & Peripherals</div>
+            <div><span><img src = "https://images.squarespace-cdn.com/content/v1/58588d72e6f2e1e1d54aa8e4/1484181711826-VGYED7M25NB4PG3LMKGK/ke17ZwdGBToddI8pDm48kODEHMGUBRgRRplOmqRomK1Zw-zPPgdn4jUwVcJE1ZvWhcwhEtWJXoshNdA9f1qD7Rb66VC8y5UmDKESC3gpGyXuuE80dFkeX9PanWgM3V4qRJePadRz66WmX0L5eMAEew/image-asset.png" width = "15" height = "15"></img></span>     Energy & Clean Technology</div>
+            <div><span><img src = "https://health.wyo.gov/wp-content/uploads/2016/02/health-science-icon.png" width = "15" height = "15"></img></span>     Life Sciences</div>
+            <div><span><img src = "http://www.clker.com/cliparts/p/j/G/M/H/j/aws-vpc-internet-gateway-md.png" width = "15" height = "15"></img></span>     Mobile, Web, & Cloud Integration </div>
+            <div><span><img src = "https://cdn0.iconfinder.com/data/icons/infographic-bar-10/512/1-512.png" width = "15" height = "15"></img></span>     Services & Analytics</div>
+            <div><span><img src = "https://cdn1.iconfinder.com/data/icons/web-design-and-development-49/64/50-512.png" width = "15" height = "15"></img></span>     Software</div>
+            <div><span><img src = "https://cdn3.iconfinder.com/data/icons/media-50/614/7508_-_Signals_Tower_II-512.png" width = "15" height = "15"></img></span>     Telecommunications & Wireless</div>
+        </div>
+        <div id = "reference" class="reference">
+            <div> &nbsp Map Produced by: Phoebe Chow, Dahyun Cha, Sunga Choe &nbsp</div>
+        </div>
+        <script src='./final-project-04-02-2020-final.js'></script>
+        <script src='./companies.geojson'></script> 
+    </body>
+</html>
